@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title> 3D Human Anatomy & Organ Hotspot Engine</title>
+  <meta name="description" content="تطبيق تفاعلي ثلاثي الأبعاد لتشريح جسم الإنسان، الجهاز الهضمي، القلب النابض مع إمكانية الدخول للحجرات الداخلية والتحكم ببيانات الـ JSON" />
+
+  <!-- Google Fonts: Cairo & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app" class="app-root">
+    <!-- Top Cyber Medical Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-symbol">
+          <span class="pulsing-core"></span>
+        </div>
+        <div class="brand-titles">
+          <h1> تشريح الجسم ثلاثي الأبعاد</h1>
+          <span class="brand-sub">3D Human Anatomy & Organ Hotspot Engine</span>
+        </div>
+      </div>
+
+      <!-- System Filter Chips -->
+      <nav class="system-nav" id="systemNav" aria-label="أنظمة الجسم">
+        <button class="nav-chip active" data-system="all">
+          <span class="chip-dot" style="background:#38bdf8;"></span>
+          الجسم بالكامل
+        </button>
+        <button class="nav-chip" data-system="digestive">
+          <span class="chip-dot" style="background:#f59e0b;"></span>
+          الجهاز الهضمي
+        </button>
+        <button class="nav-chip" data-system="circulatory">
+          <span class="chip-dot" style="background:#ef4444;"></span>
+          القلب والدوران
+        </button>
+        <button class="nav-chip" data-system="nervous">
+          <span class="chip-dot" style="background:#06b6d4;"></span>
+          الجهاز العصبي
+        </button>
+        <button class="nav-chip" data-system="respiratory">
+          <span class="chip-dot" style="background:#8b5cf6;"></span>
+          الجهاز التنفسي
+        </button>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        <button class="btn-action" id="btnSoundToggle" title="تشغيل/كتم صوت نبضات القلب الحية">
+          <span class="action-icon">🔊</span>
+          <span class="action-label">صوت النبض</span>
+        </button>
+
+        <button class="btn-action" id="btnAutoRotate" title="تشغيل أو إيقاف الدوران التلقائي">
+          <span class="action-icon">🔄</span>
+          <span class="action-label">تدوير تلقائي</span>
+        </button>
+
+        <button class="btn-action btn-highlight" id="btnMouseGuide" title="كيفية التحكم وتدوير الصورة بالماوس">
+          <span class="action-icon">🖱️</span>
+          <span class="action-label">دليل الماوس</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Viewport: 3D Scene Container -->
+    <main class="viewport-wrapper">
+      <div id="canvas-container" class="canvas-container">
+        <!-- 2D Projected Hotspot Badges injected here dynamically -->
+      </div>
+
+      <!-- On-Screen 3D Navigation Controls Widget -->
+      <div class="view-controls-floating">
+        <span class="view-controls-title">زوايا العرض 3D:</span>
+        <div class="view-btn-group">
+          <button class="btn-view" data-view="front" title="مشهد أمامي">أمامي</button>
+          <button class="btn-view" data-view="side_right" title="مشهد جانبي">جانبي</button>
+          <button class="btn-view" data-view="top" title="مشهد علوي">علوي</button>
+          <button class="btn-view" data-view="back" title="مشهد خلفي">خلفي</button>
+          <button class="btn-view btn-reset" id="btnResetCamera" title="إعادة ضبط الوضعية الأصلية">إعادة ضبط ↺</button>
+        </div>
+      </div>
+
+      <!-- Quick Action Floating Dock (Heart Zoom & Digestive Focus) -->
+      <div class="dock-floating">
+        <button class="dock-btn dock-heart" id="dockBtnHeart">
+          <span class="dock-icon">❤️</span>
+          <div class="dock-texts">
+            <span class="dock-main">الدخول إلى القلب والنبض</span>
+            <span class="dock-sub">فحص الحجرات والصمامات 3D</span>
+          </div>
+        </button>
+
+        <button class="dock-btn dock-digestive" id="dockBtnDigestive">
+          <span class="dock-icon">🥗</span>
+          <div class="dock-texts">
+            <span class="dock-main">الجهاز الهضمي المخصص</span>
+            <span class="dock-sub">استكشاف مسار الطعام والأعضاء</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Mouse Interaction Guide Overlay Banner (Collapsible) -->
+      <div class="mouse-guide-card" id="mouseGuideCard">
+        <div class="guide-card-header">
+          <div class="guide-title">
+            <span>🖱️</span>
+            <strong>كيف تتحكم وتلف الصورة بالماوس؟</strong>
+          </div>
+          <button class="btn-card-close" id="btnCloseGuide">✕</button>
+        </div>
+        <div class="guide-items">
+          <div class="guide-item">
+            <div class="guide-badge">زر الماوس الأيسر + السحب</div>
+            <div class="guide-desc"><strong>تدوير النموذج 360°</strong> في كل الاتجاهات ورؤية الأعضاء من جميع الزوايا.</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-badge">عجلة الماوس (Scroll Wheel)</div>
+            <div class="guide-desc"><strong>تكبير وتصغير (Zoom In / Out)</strong> للاقتراب من أي عضو أو الرجوع للخلف.</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-badge">زر الماوس الأيمن + السحب</div>
+            <div class="guide-desc"><strong>تحريك الكاميرا جانباً (Pan)</strong> للأعلى والأسفل أو لليمين واليسار.</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-badge">الضغط على أي نقطة ملونة</div>
+            <div class="guide-desc"><strong>التركيز على العضو</strong> وقراءة الشرح الطبي المفصل ومشاهدة حركته.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Cardiac EKG Pulse HUD Bar -->
+      <div class="ekg-hud-bar">
+        <div class="ekg-live-badge">
+          <span class="ekg-blinking-dot"></span>
+          <span>نبض القلب الحي (Cardiac Monitor)</span>
+        </div>
+        <canvas id="ekgCanvas" width="280" height="40" class="ekg-canvas"></canvas>
+        <div class="bpm-counter">
+          <span class="bpm-value" id="bpmDisplay">72</span>
+          <span class="bpm-unit">BPM</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Side Slide-Out Organ Detail Drawer -->
+    <aside class="organ-drawer" id="organDrawer" aria-hidden="true">
+      <div class="drawer-header">
+        <div class="organ-identity">
+          <span class="organ-tag" id="drawerOrganTag">عضو حيوي</span>
+          <h2 class="organ-title-ar" id="drawerOrganTitleAr">اسم العضو</h2>
+          <span class="organ-title-en" id="drawerOrganTitleEn">Organ English Name</span>
+        </div>
+        <button class="btn-drawer-close" id="btnCloseDrawer" title="إغلاق الشرح">✕</button>
+      </div>
+
+      <!-- Heart Special Inside-Mode Toolbar (Only visible when heart is active) -->
+      <div class="heart-toolbar" id="heartToolbar" style="display: none;">
+        <div class="heart-status-box">
+          <span class="heart-beat-icon">💓</span>
+          <div>
+            <strong>القلب ينبض الآن</strong>
+            <p>انقر للدخول إلى أعماق القلب ورؤية الحجرات والصمامات من الداخل</p>
+          </div>
+        </div>
+        <button class="btn-enter-heart" id="btnToggleInsideHeart">
+          <span id="btnEnterHeartText">🔍 ادخل لداخل القلب ثلاثي الأبعاد</span>
+        </button>
+
+        <!-- Internal Chambers Sub-Tabs -->
+        <div class="chambers-container" id="chambersContainer" style="display: none;">
+          <span class="chambers-label">الحجرات الداخلية النشطة:</span>
+          <div class="chamber-chips" id="chamberChips">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Digestive Special Info Box (Only visible when digestive system organ is active) -->
+      <div class="digestive-banner" id="digestiveBanner" style="display: none;">
+        <span class="digestive-badge-icon">🔬</span>
+        <div>
+          <strong>تم تصميم هذا العضو بدقة يدوياً</strong>
+          <p>شاهد حركة وتدفق المواد المغذية عبر المسار الهضمي</p>
+        </div>
+      </div>
+
+      <!-- Content Tabs -->
+      <div class="drawer-tabs">
+        <button class="drawer-tab active" data-tab="overview">نظرة عامة والوظائف</button>
+        <button class="drawer-tab" data-tab="facts">حقائق مذهلة 💡</button>
+      </div>
+
+      <div class="drawer-content">
+        <!-- Overview Tab -->
+        <div class="tab-pane active" id="tabPaneOverview">
+          <div class="info-section">
+            <h3 class="section-title">ملخص طبي شامل</h3>
+            <p class="section-paragraph" id="drawerSummaryText"></p>
+          </div>
+
+          <div class="info-section">
+            <h3 class="section-title">الوظائف الحيوية الرئيسية</h3>
+            <ul class="functions-list" id="drawerFunctionsList"></ul>
+          </div>
+        </div>
+
+        <!-- Facts Tab -->
+        <div class="tab-pane" id="tabPaneFacts">
+          <div class="facts-container" id="drawerFactsContainer"></div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <div class="footer-hint">
+          <span>💡 انقر على أي عضو في المجسم أو استخدم قائمة الأنظمة العلوية للاستكشاف والتشريح المباشر.</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

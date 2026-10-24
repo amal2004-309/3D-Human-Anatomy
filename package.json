@@ -1,0 +1,17 @@
+{
+  "name": "anatomy-3d-hotspot",
+  "version": "1.0.0",
+  "description": "Interactive 3D Human Anatomy Hotspot Visualizer with Heartbeat & Digestive System",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host --port 5173",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}
