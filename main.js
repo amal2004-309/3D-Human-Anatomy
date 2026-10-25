@@ -23,7 +23,7 @@ class AnatomyApp {
   async init() {
     try {
       // 1. Load initial anatomy JSON data
-      const response = await fetch('./src/data/anatomy-data.json');
+      const response = await fetch('/data/anatomy_data.json');
       this.anatomyData = await response.json();
 
       // 2. Setup 3D Scene
